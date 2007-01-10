@@ -1,0 +1,12 @@
+TARGETNAME=wiimote-lib
+TARGETPATH=obj
+TARGETTYPE=LIBRARY
+
+
+INCLUDES=.
+
+SOURCES=..\wiimote-api.c
+
+UMTYPE=windows
+
+	
