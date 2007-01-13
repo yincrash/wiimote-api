@@ -18,6 +18,24 @@ WINHIDSDI BOOL WINAPI HidD_SetOutputReport(HANDLE, PVOID, ULONG);
 #include <hidsdi.h> 
 #endif // __GNUC__
 
+/*
+ * for button maps, assign each byte to a Virtual Key Code 
+ * http://msdn2.microsoft.com/en-us/library/ms645540.aspx
+ */
+typedef struct _WIIMOTE_MAP
+{
+	BYTE up;
+	BYTE left;
+	BYTE right;
+	BYTE down;
+	BYTE a;
+	BYTE b;
+	BYTE minus;
+	BYTE home;
+	BYTE plus;
+	BYTE one;
+	BYTE two;
+} WIIMOTE_MAP;
 
 /* 
  * Process a report from the wiimote.
@@ -27,6 +45,8 @@ WINHIDSDI BOOL WINAPI HidD_SetOutputReport(HANDLE, PVOID, ULONG);
  */
 int WiiM_ProcessEvent();
 int WiiM_ProcessAndGetReport(LPBYTE);
+/* Get report gets an incoming report but doesn't process it */
+int WiiM_GetReport(LPBYTE buffer);
 
 void WiiM_TogRumble();
 void WiiM_TogLED(int);
@@ -34,7 +54,10 @@ void WiiM_TogLED(int);
 void WiiM_TogIR_Abs();
 /* control mouse with relative positioning (for FPS) */
 void WiiM_TogIR_Rel(); /* TODO */
-void WiiM_MapKeys(); /* TODO */
+void WiiM_SetWiimoteKeyMap();
+/* key status is only updated whenever a key report is processed by running
+ * one of the ProcessEvent functions */
+WIIMOTE_MAP WiiM_GetWiimoteKeyStatus();
 
 int WiiM_ConnectWiimote(LPBYTE);
 void WiiM_CloseConn();
