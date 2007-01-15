@@ -1,5 +1,5 @@
 TARGETNAME=wiimote-lib
-TARGETPATH=obj
+TARGETPATH=..\..\bin\ddk_build
 TARGETTYPE=LIBRARY
 
 
