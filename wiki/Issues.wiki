@@ -1,2 +1,0 @@
-#summary There is a bug in version 0.1 that is keeping it from finding reports.
-I'm fixing said bug right now. It should be up by day's end.
