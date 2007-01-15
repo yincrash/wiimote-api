@@ -54,7 +54,7 @@ void WiiM_TogLED(int);
 void WiiM_TogIR_Abs();
 /* control mouse with relative positioning (for FPS) */
 void WiiM_TogIR_Rel(); /* TODO */
-void WiiM_SetWiimoteKeyMap();
+void WiiM_SetWiimoteKeyMap(WIIMOTE_MAP*);
 /* key status is only updated whenever a key report is processed by running
  * one of the ProcessEvent functions */
 WIIMOTE_MAP WiiM_GetWiimoteKeyStatus();

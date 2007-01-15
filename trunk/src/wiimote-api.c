@@ -19,6 +19,7 @@ BYTE rumble = 0;
 BYTE ir     = 0;
 WIIMOTE_MAP wiimote_keys;
 WIIMOTE_MAP wiimote_status;
+OVERLAPPED* hidoverlap = NULL;
 
 
 void WShowError(LPCTSTR title)
@@ -240,16 +241,19 @@ void ParseReport(unsigned char* report)
 		keybd->dwExtraInfo = GetMessageExtraInfo();
 		num_buttons++;
 	}
-	if(SendInput(num_buttons, remotebuttons, sizeof(INPUT)) == 0 )
-		WShowError("Wii Remote Buttons");
+	if(num_buttons > 0)
+	{
+		if(SendInput(num_buttons, remotebuttons, sizeof(INPUT)) == 0 )
+			WShowError("Wii Remote Buttons");
+	}
 }
 
 /*
  * Connects to a Wiimote given the Device Path
- * returns 0 if no wiimote found.
  */
 int WiiM_ConnectWiimote(LPBYTE devicepath)
 {
+	BYTE array[3] = {0x12,0x00,0x30};
 	/* handle for just reading, currently */
 	wiimotehandle = CreateFile(devicepath, GENERIC_READ | GENERIC_WRITE,
 			FILE_SHARE_READ | FILE_SHARE_WRITE, 
@@ -257,7 +261,12 @@ int WiiM_ConnectWiimote(LPBYTE devicepath)
 	if(wiimotehandle == INVALID_HANDLE_VALUE)
 	{
 		WShowError("While Connecting to Wiimote");
+		return 0;
 	}
+	/* set reporting mode to buttons only */
+	if(HidD_SetOutputReport(wiimotehandle, array, 3) == 0)
+		WShowError("While setting reporting mode.");
+
 	memset(&wiimote_keys, 0, sizeof(WIIMOTE_MAP));
 	memset(&wiimote_status, 0, sizeof(WIIMOTE_MAP));
 	return 1;
@@ -265,6 +274,8 @@ int WiiM_ConnectWiimote(LPBYTE devicepath)
 
 void WiiM_CloseConn()
 {
+	if(hidoverlap != NULL)
+		free(hidoverlap);
 	CloseHandle(wiimotehandle);
 }
 
@@ -379,15 +390,18 @@ int WiiM_ProcessAndGetReport(LPBYTE buffer)
 
 int LoopAction(LPBYTE buffer, BOOL process)
 {
-	OVERLAPPED hidoverlap;
 	DWORD result;
 	PDWORD size = malloc(sizeof(DWORD));
 	BOOL nobuffer = FALSE;
 
 	/* event that can be signaled */
-	hidoverlap.hEvent = CreateEvent(NULL, TRUE, TRUE, ""); 
-	hidoverlap.Offset = 0;
-	hidoverlap.OffsetHigh = 0;
+	if(hidoverlap == NULL)
+	{
+		hidoverlap = malloc(sizeof(OVERLAPPED));
+		hidoverlap->hEvent = CreateEvent(NULL, TRUE, TRUE, ""); 
+		hidoverlap->Offset = 0;
+		hidoverlap->OffsetHigh = 0;
+	}
 
 	if(buffer == NULL)
 	{
@@ -395,11 +409,11 @@ int LoopAction(LPBYTE buffer, BOOL process)
 		nobuffer = TRUE;
 	}
 
-	if(!ReadFile(wiimotehandle, buffer, 22, size, &hidoverlap))
+	if(!ReadFile(wiimotehandle, buffer, 22, size, hidoverlap))
 	{
 		if(GetLastError() == ERROR_IO_PENDING)
 		{
-			result = WaitForSingleObject(hidoverlap.hEvent, 100);
+			result = WaitForSingleObject(hidoverlap->hEvent, 100);
 			if(result == WAIT_TIMEOUT)
 			{
 				CancelIo(wiimotehandle);
@@ -410,7 +424,7 @@ int LoopAction(LPBYTE buffer, BOOL process)
 				WShowError("Read Wait Error");
 				return 0;
 			}
-			GetOverlappedResult(wiimotehandle, &hidoverlap, 
+			GetOverlappedResult(wiimotehandle, hidoverlap, 
 					size, FALSE);
 		}
 		else
@@ -418,7 +432,7 @@ int LoopAction(LPBYTE buffer, BOOL process)
 			WShowError("Read Error\n");
 		}
 	}
-	ResetEvent(hidoverlap.hEvent);
+	ResetEvent(hidoverlap->hEvent);
 	if(process)
 		ParseReport(buffer);
 	if(nobuffer)
