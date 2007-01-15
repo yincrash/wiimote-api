@@ -1,4 +1,4 @@
-#summary A Copy of the ReadMe text. A good description of what each function does.
+#summary A Copy of the ReadMe text formatted for the wiki. A good description of what each function does.
 Folders:
 src\           - contains the source code. also the makefile to create the mingw version of the library.
 src\ddk_build\ - contains the makefile and sources file to compile with the microsoft ddk's build utility 
@@ -17,9 +17,8 @@ gcc -mwindows -mconsole -L. -o wiimote-gui.exe wiimote-gui.o wiimote-gui.rc.o -l
 It's important that you list hid after wiimote-api or the linker won't like you.
 
 
-|-------------------|
-|Init. and Destroy  |
-|-------------------|
+
+=Init. and Destroy=
 
 WiiM_ConnectWiimote()        takes in a device path. A program must find a device path, the easiest way 
                              is currently to use the windows setupapi to obtain it. I may include something 
@@ -29,10 +28,8 @@ WiiM_ConnectWiimote()        takes in a device path. A program must find a devic
 
 WiiM_CloseConn()             closes the connection to the wiimote. 
 
-
-|-------------------| Reporting functions will timeout if no report is found (100ms). They will return 0 if no report 
-|Reporting functions| is found, and 1 if a report is found. These are functions that you probably want to put in 
-|-------------------| your main application loop to con
+=Reporting functions=
+Reporting functions will timeout if no report is found (100ms). They will return 0 if no report is found, and 1 if a report is found. These are functions that you probably want to put in your main application loop to control the wiimote.
 
 WiiM_ProcessEvent()        will pull an HID report from the Wiimote and try to process it using any keymappings 
                            currently set. If IR is currently enabled (by the api), then ProcessEvent will send mouse 
@@ -42,9 +39,7 @@ WiiM_ProcessAndGetReport() is the same as ProcessEvent except it also writes the
 
 WiiM_GetReport()           will just retrieve the report and put in the array passed without doing anything processing.
 
-|-------------------|
-|     Functions     |
-|-------------------|
+=Functions=
 
 WiiM_MapKeys()             Sets the internal keymap. If any button is set to something that is not 0, it will send a key 
                            event for the virtual key whenever the button is pressed and the report is processed by one of 
